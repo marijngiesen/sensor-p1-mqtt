@@ -53,24 +53,17 @@ if __name__ == "__main__":
     mqttc.connect("192.168.1.4")
     mqttc.loop_start()
 
-    previous_power = 0
     previous_gas = 0
 
     while True:
         data = p1sensor.read_data()
         power = re.match(r"1\-0:1\.7\.0\(([0-9\.]+)\*kW\)", data)
         if power is not None:
-            current_power = float(power.group(1))
-
-            if current_power != previous_power:
-                mqttc.publish("home/energy/power", "{:0.3f}".format(current_power))
-                previous_power = current_power
+            mqttc.publish("home/energy/power", "{:0.3f}".format(float(power.group(1))))
 
         gas = re.match(r"\(([0-9\.]+)\)", data)
         if gas is not None:
             current_gas = float(gas.group(1))
-
-            if current_gas != previous_gas:
-                publish_value = current_gas - previous_gas if previous_gas > 0 else 0
-                mqttc.publish("home/energy/gas", "{:0.3f}".format(publish_value))
-                previous_gas = current_gas
+            publish_value = current_gas - previous_gas if previous_gas > 0 else 0
+            mqttc.publish("home/energy/gas", "{:0.3f}".format(publish_value))
+            previous_gas = current_gas
